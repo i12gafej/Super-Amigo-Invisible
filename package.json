@@ -27,5 +27,6 @@
     "eslint-config-next": "^15.5.9",
     "tsx": "^4.20.0",
     "@eslint/eslintrc": "^3.3.0"
-  }
+  },
+  "type": "module"
 }

@@ -74,13 +74,13 @@ begin
  update public.rooms set revision=revision+1 where id=p_room;
  return person;
 end $$;
-create function public.edit_wishlist(p_room text,p_person uuid,p_wishlist text,p_admin boolean) returns void language plpgsql set search_path='' as $$
+create function public.edit_wishlist(p_room text,p_person uuid,p_wishlist text,p_admin boolean,p_hash text) returns void language plpgsql set search_path='' as $$
 declare r public.rooms; p public.participants;
 begin
  select * into r from public.rooms where id=p_room for update;
  select * into p from public.participants where id=p_person and room_id=p_room for update;
  if p.id is null then raise exception 'NOT_FOUND'; end if;
- if not p_admin and not p.active then raise exception 'REVOKED'; end if;
+ if not p_admin and (not p.active or p.token_hash is distinct from p_hash) then raise exception 'REVOKED'; end if;
  if not p_admin and r.closed and not p.can_edit then raise exception 'LOCKED'; end if;
  update public.participants set wishlist=p_wishlist where id=p.id;
 end $$;
@@ -144,5 +144,5 @@ begin raise exception 'Los sorteos son inmutables. Ejecuta un nuevo sorteo.'; en
 create trigger immutable_draw before update or delete on public.draws for each row execute function public.reject_draw_mutation();
 create trigger immutable_assignment before update or delete on public.assignments for each row execute function public.reject_draw_mutation();
 -- Revocar explícitamente el EXECUTE que PostgreSQL concede por defecto a PUBLIC.
-revoke execute on function public.consume_rate_limit(text,integer),public.check_password(text,text,boolean),public.find_matches(text,text),public.register_participant(text,text,text,text,text,boolean),public.edit_wishlist(text,uuid,text,boolean),public.set_edit_permission(text,uuid,boolean),public.rotate_token(text,uuid,text,text),public.save_rules(text,jsonb,bigint),public.evaluate_rule(jsonb,jsonb,integer),public.commit_draw(text,bigint,jsonb),public.reject_draw_mutation() from public,anon,authenticated;
-grant execute on function public.consume_rate_limit(text,integer),public.check_password(text,text,boolean),public.find_matches(text,text),public.register_participant(text,text,text,text,text,boolean),public.edit_wishlist(text,uuid,text,boolean),public.set_edit_permission(text,uuid,boolean),public.rotate_token(text,uuid,text,text),public.save_rules(text,jsonb,bigint),public.evaluate_rule(jsonb,jsonb,integer),public.commit_draw(text,bigint,jsonb) to service_role;
+revoke execute on function public.consume_rate_limit(text,integer),public.check_password(text,text,boolean),public.find_matches(text,text),public.register_participant(text,text,text,text,text,boolean),public.edit_wishlist(text,uuid,text,boolean,text),public.set_edit_permission(text,uuid,boolean),public.rotate_token(text,uuid,text,text),public.save_rules(text,jsonb,bigint),public.evaluate_rule(jsonb,jsonb,integer),public.commit_draw(text,bigint,jsonb),public.reject_draw_mutation() from public,anon,authenticated;
+grant execute on function public.consume_rate_limit(text,integer),public.check_password(text,text,boolean),public.find_matches(text,text),public.register_participant(text,text,text,text,text,boolean),public.edit_wishlist(text,uuid,text,boolean,text),public.set_edit_permission(text,uuid,boolean),public.rotate_token(text,uuid,text,text),public.save_rules(text,jsonb,bigint),public.evaluate_rule(jsonb,jsonb,integer),public.commit_draw(text,bigint,jsonb) to service_role;
