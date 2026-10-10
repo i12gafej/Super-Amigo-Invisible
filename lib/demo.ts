@@ -133,7 +133,7 @@ export async function demoRequest(path: string, data: Record<string, unknown> = 
         return {};
       }
       case 'admin/validate': {
-        solveDraw(state.people.map(p => p.id), state.rules);
+        solveDraw(state.people.map(p => p.id), (data.rules ?? state.rules) as Rule);
         return { message: 'Restricciones válidas. Existe un sorteo posible.' };
       }
       case 'admin/draw': {
