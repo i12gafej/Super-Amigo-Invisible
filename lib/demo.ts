@@ -1,5 +1,6 @@
 import { solveDraw } from './draw.ts';
 import { simulateDraw } from './simulation.ts';
+import { ruleContainsPerson } from './participant-removal.ts';
 import { normalizeName, similarName, type Admin, type Portal, type Rule } from './types.ts';
 
 type History = { rules: Rule; pairs: { giver: string; recipient: string }[] };
@@ -109,6 +110,16 @@ export async function demoRequest(path: string, data: Record<string, unknown> = 
       }
       case 'admin/login':
       case 'admin': return structuredClone(state);
+      case 'admin/delete-participant': {
+        if(data.confirm!==true)throw Error('Confirma expresamente la eliminación.');
+        const p=getPerson(String(data.id));
+        if(state.draws.length>0)throw Error('No se puede eliminar: este participante aparece en un sorteo. Puedes revocar su enlace.');
+        if(ruleContainsPerson(state.rules,p.id))throw Error('Quita primero las restricciones que mencionan a este participante.');
+        state.people=state.people.filter(person=>person.id!==p.id);
+        delete tokens[p.id];
+        if(current===p.id){current='';currentToken='';}
+        return {};
+      }
       case 'admin/wishlist': {
         const value = String(data.wishlist || '');
         if (value.length > 4000) throw Error('La lista es demasiado larga.');
