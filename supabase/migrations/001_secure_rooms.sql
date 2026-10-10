@@ -38,8 +38,10 @@ alter table public.draws enable row level security;
 alter table public.assignments enable row level security;
 alter table public.rate_limits enable row level security;
 -- No hay políticas para anon/authenticated. service_role solo vive en el servidor.
-revoke all on public.rooms,public.participants,public.draws,public.assignments,public.rate_limits from anon,authenticated;
-grant all on public.rooms,public.participants,public.draws,public.assignments,public.rate_limits to service_role;
+revoke all on public.rooms,public.participants,public.draws,public.assignments,public.rate_limits from public,anon,authenticated,service_role;
+grant select,insert,update on public.rooms,public.participants to service_role;
+grant select,insert on public.draws,public.assignments to service_role;
+grant select,insert,update,delete on public.rate_limits to service_role;
 
 create function public.consume_rate_limit(p_key text,p_limit integer) returns boolean language plpgsql set search_path='' as $$
 declare n integer;
