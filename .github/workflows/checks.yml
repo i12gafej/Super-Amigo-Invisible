@@ -18,3 +18,44 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-lock
+          path: package-lock.json
+          if-no-files-found: ignore
+  database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: ci-disposable-password
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: ci-disposable-password
+      PGDATABASE: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare disposable Supabase-compatible roles
+        run: |
+          psql -v ON_ERROR_STOP=1 <<'SQL'
+          create schema extensions;
+          create role anon nologin;
+          create role authenticated nologin;
+          create role service_role nologin bypassrls;
+          grant usage on schema public,extensions to anon,authenticated,service_role;
+          SQL
+      - name: Apply migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/001_secure_rooms.sql
+      - name: Verify persistence and private access
+        run: psql -v ON_ERROR_STOP=1 -f supabase/tests/integration.sql
