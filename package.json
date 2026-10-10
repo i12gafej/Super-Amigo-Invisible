@@ -1,1 +1,31 @@
-{"name":"super-amigo-invisible","version":"0.1.0","private":true,"scripts":{"dev":"next dev","build":"next build","start":"next start","typecheck":"tsc --noEmit","lint":"eslint .","test":"tsx --test tests/*.test.ts"},"dependencies":{"next":"^15.5.9","react":"^19.1.0","react-dom":"^19.1.0","server-only":"^0.0.1"},"devDependencies":{"@types/node":"^22.0.0","@types/react":"^19.0.0","@types/react-dom":"^19.0.0","typescript":"^5.9.0","tailwindcss":"^4.1.0","@tailwindcss/postcss":"^4.1.0","eslint":"^9.0.0","eslint-config-next":"^15.5.9","tsx":"^4.20.0"}}
+{
+  "name": "super-amigo-invisible",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "node --experimental-strip-types --test tests/*.test.ts"
+  },
+  "dependencies": {
+    "next": "^15.5.9",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.9.0",
+    "tailwindcss": "^4.1.0",
+    "@tailwindcss/postcss": "^4.1.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "^15.5.9",
+    "tsx": "^4.20.0",
+    "@eslint/eslintrc": "^3.3.0"
+  }
+}

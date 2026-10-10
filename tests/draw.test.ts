@@ -1,0 +1,11 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {solveDraw,validateRule} from '../lib/draw.ts';
+import {normalizeName,similarName,type Rule} from '../lib/types.ts';
+const empty:Rule={op:'AND',rules:[]};
+test('normalización y coincidencias toleran acentos y errores pequeños',()=>{assert.equal(normalizeName('  ÁNA   García! '),'ana garcia');assert.ok(similarName('Ana Garcia','Ana García'));assert.ok(similarName('Pablo Martin','Pablo Martn'));assert.equal(similarName('Ana','Dani'),false);});
+test('todas las personas dan y reciben exactamente una vez',()=>{for(let n=2;n<40;n++){const ids=Array.from({length:n},(_,i)=>String(i));const a=solveDraw(ids,empty);assert.equal(Object.keys(a).length,n);assert.equal(new Set(Object.values(a)).size,n);for(const id of ids)assert.notEqual(a[id],id);}});
+test('AND OR NOT se aplican al conjunto completo',()=>{const rule:Rule={op:'AND',rules:[{op:'OR',rules:[{op:'pair',giver:'a',recipient:'b'},{op:'pair',giver:'a',recipient:'c'}]},{op:'NOT',rule:{op:'pair',giver:'b',recipient:'a'}}]};const a=solveDraw(['a','b','c'],rule);assert.ok(a.a==='b'||a.a==='c');assert.notEqual(a.b,'a');});
+test('NOT de AND no equivale a prohibir cada pareja por separado',()=>{const a=solveDraw(['a','b','c'],{op:'NOT',rule:{op:'AND',rules:[{op:'pair',giver:'a',recipient:'b'},{op:'pair',giver:'b',recipient:'c'}]}});assert.equal(a.a==='b'&&a.b==='c',false);});
+test('rechaza contradicciones y autoasignaciones forzadas',()=>{assert.throws(()=>solveDraw(['a','b'],{op:'pair',giver:'a',recipient:'a'}),/No hay/);assert.throws(()=>solveDraw(['a','b'],{op:'AND',rules:[{op:'pair',giver:'a',recipient:'b'},{op:'NOT',rule:{op:'pair',giver:'a',recipient:'b'}}]}),/No hay/);});
+test('rechaza referencias inexistentes y estructuras inválidas',()=>{assert.throws(()=>validateRule({op:'pair',giver:'x',recipient:'b'},['a','b']));assert.throws(()=>validateRule({op:'OR',rules:[]},['a','b']));assert.throws(()=>solveDraw(['a'],empty));assert.throws(()=>solveDraw(['a','a'],empty));});
