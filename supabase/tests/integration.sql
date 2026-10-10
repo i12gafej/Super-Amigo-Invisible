@@ -4,7 +4,8 @@
 begin;
 insert into public.rooms(id,name,budget,event_date,password_hash,admin_password_hash) values
 ('ci-a','Prueba A',30,'2026-12-25',extensions.crypt('test-room',extensions.gen_salt('bf',4)),extensions.crypt('test-admin',extensions.gen_salt('bf',4))),
-('ci-b','Prueba B',30,'2026-12-25',extensions.crypt('test-room-b',extensions.gen_salt('bf',4)),extensions.crypt('test-admin-b',extensions.gen_salt('bf',4)));
+('ci-b','Prueba B',30,'2026-12-25',extensions.crypt('test-room-b',extensions.gen_salt('bf',4)),extensions.crypt('test-admin-b',extensions.gen_salt('bf',4))),
+('ci-same','Configuración errónea',30,'2026-12-25',extensions.crypt('same-password',extensions.gen_salt('bf',4)),extensions.crypt('same-password',extensions.gen_salt('bf',4)));
 
 do $$
 declare
@@ -12,6 +13,7 @@ declare
 begin
  if public.check_password('ci-a','test-room',false) is not true then raise exception 'Room password rejected'; end if;
  if public.check_password('ci-a','test-room',true) is true then raise exception 'Room password grants admin access'; end if;
+ if public.check_password('ci-same','same-password',true) is true then raise exception 'Same shared password grants admin access'; end if;
  if public.check_password('missing','anything',false) is true then raise exception 'Unknown room accepted'; end if;
  a=public.register_participant('ci-a','Ana García','ana garcia',repeat('a',64),'test-cipher-a',false);
  b=public.register_participant('ci-a','Pablo Martín','pablo martin',repeat('b',64),'test-cipher-b',false);

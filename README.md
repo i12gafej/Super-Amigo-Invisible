@@ -4,16 +4,18 @@ PWA mobile-first en Next.js 15, React 19, TypeScript, Tailwind CSS 4 y Supabase 
 
 ## Estado de entrega
 
-Código preparado localmente en `/workspace/Super-Amigo-Invisible`. El entorno no pudo descargar el repositorio solicitado `i12gafej/Super-Amigo-Invisible`: el acceso de red al proxy está bloqueado. No se ha leído ni modificado el contenido remoto, ni se han publicado commits o PRs. Antes de integrar, comparar con la rama existente y respetar sus instrucciones.
+Código preparado localmente en `/workspace/Super-Amigo-Invisible`, rama `feat/super-amigo-invisible`. Se confirmó mediante el conector de GitHub que `i12gafej/Super-Amigo-Invisible` está vacío. El intento de inicialización remota fue rechazado con `403: Resource not accessible by integration`: no se creó ningún archivo ni commit remoto. El usuario indicó continuar localmente. El CLI y npm siguen sin poder acceder al proxy del entorno.
 
 - Primer commit: interfaz y flujo completo con datos simulados en `/demo`.
 - Segundo commit: backend real y migración SQL, separados de la demo.
-- Pruebas de lógica y criptografía ejecutadas localmente con Node 24.
+- Trece pruebas de lógica, criptografía, validación de entradas y ciclo completo de demo ejecutadas localmente con Node 24.
 - TypeScript, ESLint y build intentados; bloqueados porque no se pudieron instalar sus dependencias. No se consideran aprobados.
 - Migración escrita, pero no aplicada ni verificada en Supabase. No hay credenciales configuradas.
 - No se ha ejecutado una comprobación visual en navegador ni una instalación PWA en dispositivo.
 
-La demo persiste exclusivamente datos simulados en `localStorage` bajo `sai-demo`; sus botones no usan los endpoints reales. La aplicación real nunca cambia silenciosamente a datos de demo. Los portales y las respuestas privadas no se almacenan en la caché del service worker.
+Fuentes oficiales y diagnóstico de accesos: [docs/references.md](docs/references.md). Las pruebas de PostgreSQL están en `supabase/tests/integration.sql` y CI las ejecutará en una base desechable cuando se habilite la publicación. Por ahora no están ejecutadas.
+
+La demo persiste exclusivamente datos simulados en `localStorage` bajo `sai-demo-v2`; sus botones no usan los endpoints reales. La aplicación real nunca cambia silenciosamente a datos de demo. Los portales y las respuestas privadas no se almacenan en la caché del service worker.
 
 ## Arranque local
 
@@ -24,7 +26,7 @@ npm install
 npm run dev
 ```
 
-Abre `http://localhost:3000/demo`. La contraseña de demo puede ser cualquiera. Desde su franja superior se prueban registro, portal y administración. El enlace demo se conserva al recargar el mismo navegador; solo simula acceso, no ofrece protección. No introducir información privada en la demo.
+Abre `http://localhost:3000/demo`. La contraseña de demo puede ser cualquiera. Desde su franja superior se prueban registro, portal y administración, o se reinician los datos simulados. El enlace demo se conserva al recargar el mismo navegador; solo simula acceso, no ofrece protección. No introducir información privada en la demo.
 
 Para modo real, copia `.env.example` a `.env.local` y sustituye los valores ficticios. No subas este archivo al repositorio. Configura:
 
@@ -44,7 +46,7 @@ Rutas: `/` registro, `/portal#TOKEN` acceso personal, `/admin` administración y
 
 ## Seguridad y persistencia
 
-Todas las operaciones reales son POST JSON, validan el origen y rechazan cuerpos mayores de 32 KiB. Los endpoints verifican la sesión en servidor y vuelven a consultar la identidad y la validez del token. Las cookies son HttpOnly, SameSite Strict y Secure en producción. El acceso administrativo requiere una contraseña distinta de la compartida y se invalida al cambiar su hash.
+Todas las operaciones reales son POST JSON, validan el origen y rechazan cuerpos mayores de 32 KiB. Los endpoints verifican la sesión en servidor y vuelven a consultar la identidad y la validez del token. Las cookies son HttpOnly, SameSite Strict y Secure en producción. El acceso administrativo requiere una contraseña distinta de la compartida y se invalida al cambiar su hash. La RPC también rechaza usar la contraseña compartida para administración aunque ambas contraseñas hayan sido configuradas iguales por error.
 
 Cada enlace contiene 32 bytes aleatorios. PostgreSQL guarda SHA-256 para validación y una copia AES-256-GCM recuperable por el backend únicamente tras autorización administrativa. Revocar o regenerar invalida las sesiones de ese participante. Editar una lista comprueba también el hash dentro de la transacción para evitar carreras con la revocación.
 
@@ -84,7 +86,7 @@ npm run lint
 npm run build
 ```
 
-CI incluye estas cuatro comprobaciones. Cuando el acceso a npm esté disponible, genera y revisa `package-lock.json`, confirma las comprobaciones y cambia CI a `npm ci` para instalaciones reproducibles. Ninguna dependencia fue descargada ni auditada en esta sesión.
+CI incluye estas cuatro comprobaciones y un job independiente que aplica la migración y comprueba aislamiento, permisos, revocación y persistencia en PostgreSQL 16 desechable. Se sube el lockfile generado como artefacto para revisarlo. Cuando el acceso a npm esté disponible, genera y revisa `package-lock.json`, confirma las comprobaciones y cambia CI a `npm ci` para instalaciones reproducibles. Ninguna dependencia fue descargada ni auditada en esta sesión.
 
 Antes de publicar, verifica en una base de pruebas: dos salas separadas; registro duplicado concurrente; tokens manipulados, revocados y regenerados; bloqueo de listas; permisos excepcionales; acceso anónimo a tablas y RPC denegado; sorteo imposible; dos sorteos simultáneos; historial inmutable y ausencia de datos ajenos en la respuesta del portal. Estas comprobaciones de integración siguen pendientes.
 

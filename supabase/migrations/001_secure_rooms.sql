@@ -53,9 +53,11 @@ begin
  return n<=p_limit;
 end $$;
 create function public.check_password(p_room text,p_password text,p_admin boolean) returns boolean language plpgsql set search_path='' as $$
-declare stored text;
+declare stored text; shared text;
 begin
- select case when p_admin then admin_password_hash else password_hash end into stored from public.rooms where id=p_room;
+ select case when p_admin then admin_password_hash else password_hash end,password_hash into stored,shared from public.rooms where id=p_room;
+ -- Incluso con una configuración errónea, la contraseña compartida nunca da acceso administrativo.
+ if p_admin and shared is not null and extensions.crypt(p_password,shared)=shared then return false; end if;
  -- Hash ficticio cuando la sala no existe para no responder inmediatamente.
  return extensions.crypt(p_password,coalesce(stored,'$2a$12$abcdefghijklmnopqrstuuKXogPFdPQvdwkTkDvOS/J7VMJEV/CAS'))=stored;
 end $$;
