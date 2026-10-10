@@ -1,4 +1,5 @@
 import { solveDraw } from './draw.ts';
+import { simulateDraw } from './simulation.ts';
 import { normalizeName, similarName, type Admin, type Portal, type Rule } from './types.ts';
 
 type History = { rules: Rule; pairs: { giver: string; recipient: string }[] };
@@ -136,6 +137,7 @@ export async function demoRequest(path: string, data: Record<string, unknown> = 
         solveDraw(state.people.map(p => p.id), (data.rules ?? state.rules) as Rule);
         return { message: 'Restricciones válidas. Existe un sorteo posible.' };
       }
+      case 'admin/simulate': return simulateDraw(state.people, state.rules, Math.random);
       case 'admin/draw': {
         if (data.confirm !== true) throw Error('Confirma el nuevo sorteo.');
         assignments = solveDraw(state.people.map(p => p.id), state.rules);

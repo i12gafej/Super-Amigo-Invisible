@@ -5,6 +5,7 @@ import {db,ApiError} from './database';
 import {field as text,uuidField,passwordField} from './validation';
 import {hashToken,newToken,sealToken,openToken,signSession,readSession,type Session} from './crypto';
 import {solveDraw,validateRule} from './draw';
+import {simulateDraw} from './simulation';
 import {normalizeName,type Room,type Person,type Rule,type Admin} from './types';
 type DbRoom={id:string;name:string;budget:number;event_date:string;closed:boolean;revision:number;rules:Rule;admin_password_hash:string;current_draw_id:string|null};
 type DbPerson={id:string;room_id:string;name:string;wishlist:string;can_edit:boolean;active:boolean;token_hash:string;token_ciphertext:string};
@@ -31,6 +32,11 @@ export async function dispatch(path:string,data:Record<string,unknown>):Promise<
  if(path==='admin/wishlist'){await db('rpc/edit_wishlist',{p_room:r.id,p_person:uuidField(data,'id'),p_wishlist:text(data,'wishlist'),p_admin:true,p_hash:null});return {};}
  if(path==='admin/permission'){if(typeof data.enabled!=='boolean')throw new ApiError(400,'Permiso inválido.');await db('rpc/set_edit_permission',{p_room:r.id,p_person:uuidField(data,'id'),p_enabled:data.enabled});return {};}
  if(path==='admin/token'){const id=uuidField(data,'id'),action=text(data,'action',1,20);if(!['copy','revoke','regenerate'].includes(action))throw new ApiError(400,'Acción inválida.');if(action==='copy'){const [p]=await db<DbPerson[]>('participants?id=eq.'+encodeURIComponent(id)+'&room_id=eq.'+encodeURIComponent(r.id)+'&select=token_ciphertext,active');if(!p?.active)throw new ApiError(409,'El enlace está revocado. Regenera uno nuevo.');return {link:personalLink(openToken(p.token_ciphertext))};}const token=action==='regenerate'?newToken():null;await db('rpc/rotate_token',{p_room:r.id,p_person:id,p_hash:token?hashToken(token):null,p_cipher:token?sealToken(token):null});return {link:token?personalLink(token):null};}
+ if(path==='admin/simulate'){
+  const people=await db<{id:string;name:string}[]>('participants?room_id=eq.'+encodeURIComponent(r.id)+'&select=id,name&order=created_at.asc');
+  try{return simulateDraw(people,r.rules,()=>randomInt(0,0x100000000)/0x100000000);}
+  catch(e){throw new ApiError(422,e instanceof Error?e.message:'No se pudo generar el simulacro.');}
+ }
  if(['admin/rules','admin/validate','admin/draw'].includes(path)){const people=await db<{id:string}[]>('participants?room_id=eq.'+encodeURIComponent(r.id)+'&select=id&order=created_at.asc'),ids=people.map(p=>p.id);const rules=path==='admin/rules'||(path==='admin/validate'&&data.rules!==undefined)?data.rules:r.rules;try{validateRule(rules,ids);const assignments=solveDraw(ids,rules,()=>randomInt(0,0x100000000)/0x100000000);if(path==='admin/rules'){await db('rpc/save_rules',{p_room:r.id,p_rules:rules,p_revision:r.revision});return {};}if(path==='admin/validate')return {message:'Restricciones válidas. Existe un sorteo posible.'};if(data.confirm!==true)throw new ApiError(400,'Confirma expresamente el nuevo sorteo.');await db('rpc/commit_draw',{p_room:r.id,p_revision:r.revision,p_assignments:Object.entries(assignments).map(([giver_id,recipient_id])=>({giver_id,recipient_id}))});return {};}catch(e){if(e instanceof ApiError)throw e;throw new ApiError(422,e instanceof Error?e.message:'Restricciones inválidas.');}}
  }
  throw new ApiError(404,'Operación desconocida.');
