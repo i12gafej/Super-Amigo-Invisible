@@ -4,16 +4,17 @@ PWA mobile-first en Next.js 15, React 19, TypeScript, Tailwind CSS 4 y Supabase 
 
 ## Estado de entrega
 
-Código preparado localmente en `/workspace/Super-Amigo-Invisible`, rama `feat/super-amigo-invisible`. Se confirmó mediante el conector de GitHub que `i12gafej/Super-Amigo-Invisible` está vacío. El intento de inicialización remota fue rechazado con `403: Resource not accessible by integration`: no se creó ningún archivo ni commit remoto. El usuario indicó continuar localmente. El CLI y npm siguen sin poder acceder al proxy del entorno.
+Código local en `/workspace/Super-Amigo-Invisible`, rama `feat/super-amigo-invisible`, subido mediante el conector de GitHub. [PR #1 en borrador](https://github.com/i12gafej/Super-Amigo-Invisible/pull/1).
 
-- Primer commit: interfaz y flujo completo con datos simulados en `/demo`.
-- Segundo commit: backend real y migración SQL, separados de la demo.
-- Trece pruebas de lógica, criptografía, validación de entradas y ciclo completo de demo ejecutadas localmente con Node 24.
-- TypeScript, ESLint y build intentados; bloqueados porque no se pudieron instalar sus dependencias. No se consideran aprobados.
-- Migración escrita, pero no aplicada ni verificada en Supabase. No hay credenciales configuradas.
-- No se ha ejecutado una comprobación visual en navegador ni una instalación PWA en dispositivo.
+- Los commits separan primero interfaz/demo y después backend, validaciones y pruebas.
+- Trece pruebas de lógica, criptografía, entradas y ciclo completo de demo pasan localmente y en CI.
+- TypeScript, ESLint y build de producción pasan en [GitHub Actions](https://github.com/i12gafej/Super-Amigo-Invisible/actions/runs/38036260170). La ejecución posterior también aprobó lint sin avisos, build y auditoría de producción: [resultado](https://github.com/i12gafej/Super-Amigo-Invisible/actions/runs/38036554997).
+- La migración se aplicó y las pruebas de aislamiento, permisos, revocación e historial pasaron en PostgreSQL 16 desechable en CI.
+- No se ha conectado a un proyecto Supabase real, ni probado visualmente en navegador, ni desplegado.
+- La auditoría de producción informa de cero vulnerabilidades tras actualizar PostCSS. Queda abierto el aviso sin parche publicado de braces, en la cadena de desarrollo de ESLint. Alcance y seguimiento: [docs/dependency-security.md](docs/dependency-security.md).
+- El CLI del entorno sigue sin acceso a npm/Git por el proxy; la subida y las comprobaciones se realizan mediante el conector y GitHub Actions.
 
-Fuentes oficiales y diagnóstico de accesos: [docs/references.md](docs/references.md). Las pruebas de PostgreSQL están en `supabase/tests/integration.sql` y CI las ejecutará en una base desechable cuando se habilite la publicación. Por ahora no están ejecutadas.
+Fuentes oficiales y diagnóstico: [docs/references.md](docs/references.md). Las pruebas SQL están en `supabase/tests/integration.sql`.
 
 La demo persiste exclusivamente datos simulados en `localStorage` bajo `sai-demo-v2`; sus botones no usan los endpoints reales. La aplicación real nunca cambia silenciosamente a datos de demo. Los portales y las respuestas privadas no se almacenan en la caché del service worker.
 
@@ -86,8 +87,8 @@ npm run lint
 npm run build
 ```
 
-CI incluye estas cuatro comprobaciones y un job independiente que aplica la migración y comprueba aislamiento, permisos, revocación y persistencia en PostgreSQL 16 desechable. Se sube el lockfile generado como artefacto para revisarlo. Cuando el acceso a npm esté disponible, genera y revisa `package-lock.json`, confirma las comprobaciones y cambia CI a `npm ci` para instalaciones reproducibles. Ninguna dependencia fue descargada ni auditada en esta sesión.
+CI incluye estas cuatro comprobaciones y un job independiente que aplica la migración y comprueba aislamiento, permisos, revocación y persistencia en PostgreSQL 16 desechable. Se sube el lockfile generado como artefacto para revisarlo. Se conserva `package-lock.json`, generado en el runner y revisado para que solo use el registro público de npm. CI utiliza `npm ci` para reproducir esa instalación. La auditoría completa conserva el aviso abierto de braces en desarrollo; la auditoría de producción debe pasar obligatoriamente.
 
-Antes de publicar, verifica en una base de pruebas: dos salas separadas; registro duplicado concurrente; tokens manipulados, revocados y regenerados; bloqueo de listas; permisos excepcionales; acceso anónimo a tablas y RPC denegado; sorteo imposible; dos sorteos simultáneos; historial inmutable y ausencia de datos ajenos en la respuesta del portal. Estas comprobaciones de integración siguen pendientes.
+Antes de publicar, verifica en una base de pruebas: dos salas separadas; registro duplicado concurrente; tokens manipulados, revocados y regenerados; bloqueo de listas; permisos excepcionales; acceso anónimo a tablas y RPC denegado; sorteo imposible; dos sorteos simultáneos; historial inmutable y ausencia de datos ajenos en la respuesta del portal. El script SQL de CI cubre aislamiento, permisos de tablas y RPC, cierre de listas, excepciones, revocación y regeneración, validación de sorteos e historial. CI también incluye pruebas de registro duplicado simultáneo y dos sorteos sobre la misma revisión. Las pruebas completas de endpoints y la revisión en Supabase real siguen pendientes.
 
 Next.js requiere un alojamiento con servidor Node, no un export estático. Para una prueba personal puede utilizarse un plan gratuito compatible y Supabase Free; revisa los límites vigentes del proveedor antes de publicar. No se ha contratado ni desplegado ningún servicio.

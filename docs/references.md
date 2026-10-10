@@ -16,3 +16,7 @@ Esta revisión no sustituye las comprobaciones de compilación ni de integració
 El conector permite leer metadatos de `i12gafej/Super-Amigo-Invisible`; se confirmó que no tiene ramas. El intento de crear `.gitignore` devolvió `Resource not accessible by integration`. La instalación accesible enumerada pertenece a `javiyalicia2023`, no al propietario del repositorio solicitado. No se usó otra cuenta para intentar escribir.
 
 El CLI sigue sin conectar al proxy configurado y npm devuelve `EPERM` al intentar usarlo. No se han eludido las restricciones del proxy ni reutilizado credenciales de otras cuentas.
+
+## Actualización del acceso y verificación
+
+La cuenta `i12gafej` ya tiene una instalación del conector y permite escribir en el repositorio. Se inicializó `main` con `.gitignore` y se publicaron los commits en `feat/super-amigo-invisible`, con el [PR #1](https://github.com/i12gafej/Super-Amigo-Invisible/pull/1). La primera ejecución de GitHub Actions aprobó las trece pruebas, TypeScript, lint, build y la integración SQL en PostgreSQL 16. La conexión a Supabase real, las pruebas visuales y el despliegue siguen pendientes. El acceso de red del CLI local no cambió.

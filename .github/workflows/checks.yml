@@ -1,6 +1,7 @@
 name: Checks
 on:
   push:
+    branches: [main]
   pull_request:
 permissions:
   contents: read
@@ -12,17 +13,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
-      # Cambiar a npm ci cuando se genere y revise package-lock.json.
-      - run: npm install
-      - name: Export lockfile for repository synchronization
-        if: github.event_name == 'push'
-        run: |
-          node --input-type=module <<'JS'
-          import {readFileSync} from 'node:fs';
-          import {gzipSync} from 'node:zlib';
-          const encoded=gzipSync(readFileSync('package-lock.json')).toString('base64');
-          for(let i=0;i<encoded.length;i+=6000) console.log('SAI_LOCK_'+i+':'+encoded.slice(i,i+6000));
-          JS
+      - run: npm ci
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=low
       - name: Dependency audit report
@@ -73,3 +64,5 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/001_secure_rooms.sql
       - name: Verify persistence and private access
         run: psql -v ON_ERROR_STOP=1 -f supabase/tests/integration.sql
+      - name: Verify concurrent registration and draw transactions
+        run: python3 scripts/test-concurrency.py
