@@ -43,6 +43,8 @@ Genera cada secreto por separado en tu equipo y guárdalo exclusivamente en el g
 
 Para una instalación nueva aplica `supabase/migrations/001_secure_rooms.sql` y después `supabase/migrations/002_delete_participants.sql` desde el editor SQL de Supabase. Si ya aplicaste 001, ejecuta únicamente 002 para habilitar la eliminación de participantes. [Uso y límites de la eliminación](docs/participant-removal.md). Si ya hay tablas de Navidad existentes, adapta la migración al esquema real antes de ejecutarla: no está autorizado destruir ni sustituir datos existentes. `supabase/seed.example.sql` muestra cómo crear una sala con dos contraseñas distintas, compartida y administrativa. Sustituye sus valores ficticios en el editor, no en un archivo versionado. Las contraseñas se almacenan con bcrypt; límite de 72 bytes UTF-8.
 
+Para fijar el regalo mínimo en 40 € en la sala `navidad-2026`, aplica `supabase/migrations/003_gift_minimum.sql`. No modifica participantes, listas ni sorteos. En nuevas instalaciones, aplica también 003 después de 002.
+
 Rutas: `/` registro, `/portal#TOKEN` acceso personal, `/admin` administración y `/demo` simulación. Al abrir un enlace real, el navegador elimina el fragmento visible antes de intercambiarlo por una cookie HttpOnly; conserva tu copia original. La cookie expira a los 30 días y el enlace es reutilizable hasta revocarlo o regenerarlo. El administrador puede copiarlo y abrir `wa.me` para reenviarlo: el usuario decide y envía en WhatsApp, la aplicación no envía mensajes automáticamente.
 
 ## Seguridad y persistencia

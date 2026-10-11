@@ -3,7 +3,7 @@ create extension if not exists pgcrypto with schema extensions;
 create extension if not exists fuzzystrmatch with schema extensions;
 create table public.rooms (
  id text primary key check (length(id) between 1 and 80),
- name text not null, budget numeric not null default 30 check (budget >= 0),
+ name text not null, budget numeric not null default 40 check (budget >= 0),
  event_date date not null, password_hash text not null, admin_password_hash text not null,
  closed boolean not null default false, revision bigint not null default 0,
  rules jsonb not null default '{"op":"AND","rules":[]}', current_draw_id uuid

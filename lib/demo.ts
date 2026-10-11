@@ -5,7 +5,7 @@ import { normalizeName, similarName, type Admin, type Portal, type Rule } from '
 
 type History = { rules: Rule; pairs: { giver: string; recipient: string }[] };
 const initial: Admin = {
-  room: { id: 'navidad-2026', name: 'Navidad en familia', budget: 30, date: '2026-12-25', closed: false },
+  room: { id: 'navidad-2026', name: 'Navidad en familia', budget: 40, date: '2026-12-25', closed: false },
   people: [
     { id: 'ana', name: 'Ana García', wishlist: 'Un libro que te haya gustado.\nCafé de especialidad. Mucho café.', canEdit: false, active: true },
     { id: 'pablo', name: 'Pablo Martín', wishlist: 'Calcetines de montaña, talla 42.\nUn juego de mesa para dos.', canEdit: false, active: true },
